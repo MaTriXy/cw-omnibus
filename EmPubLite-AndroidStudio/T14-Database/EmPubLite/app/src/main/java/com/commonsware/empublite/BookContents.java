@@ -3,19 +3,18 @@ package com.commonsware.empublite;
 import java.util.List;
 
 public class BookContents {
-  String title;
   List<BookContents.Chapter> chapters;
 
   int getChapterCount() {
-    return (chapters.size());
+    return(chapters.size());
   }
 
   String getChapterFile(int position) {
-    return (chapters.get(position).file);
+    return(chapters.get(position).file);
   }
 
-  String getTitle() {
-    return (title);
+  String getChapterTitle(int position) {
+    return(chapters.get(position).title);
   }
 
   static class Chapter {

@@ -1,16 +1,7 @@
-ZXing Android Integration Demo
-==============================
-This is just a quick-and-dirty sample application showing
-how to use the [ZXing](http://code.google.com/p/zxing/) `IntentIntegrator` class.
+This sample Android app demonstrates
+using ZXing's `IntentIntegrator` to scan a barcode using the Barcode Scanner app.
 
-License
--------
-The code in this project is licensed under the Apache
-Software License 2.0, per the terms of the included LICENSE
-file.
+This app is covered in 
+[the chapter on working with third-party camera code](https://commonsware.com/Android/previews/using-the-camera-via-3rd-party-apps)
+in [*The Busy Coder's Guide to Android Development*](https://commonsware.com/Android/).
 
-Who Made This?
---------------
-<a href="http://commonsware.com">![CommonsWare](http://commonsware.com/images/logo.png)</a>
-
-[gg]: http://groups.google.com/group/cw-android

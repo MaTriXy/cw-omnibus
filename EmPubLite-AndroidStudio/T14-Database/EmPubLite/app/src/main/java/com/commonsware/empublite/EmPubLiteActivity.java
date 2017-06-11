@@ -8,67 +8,66 @@ import android.os.StrictMode;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import io.karim.MaterialTabs;
 
 public class EmPubLiteActivity extends Activity {
   private static final String MODEL="model";
   private static final String PREF_LAST_POSITION="lastPosition";
   private static final String PREF_SAVE_LAST_POSITION="saveLastPosition";
   private static final String PREF_KEEP_SCREEN_ON="keepScreenOn";
-  private ViewPager pager=null;
-  private ContentsAdapter adapter=null;
+  private ViewPager pager;
+  private ContentsAdapter adapter;
   private ModelFragment mfrag=null;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
 
     setupStrictMode();
-
-    setContentView(R.layout.main);
     pager=(ViewPager)findViewById(R.id.pager);
-
-    getActionBar().setHomeButtonEnabled(true);
   }
 
   @Override
-  public void onResume() {
-    super.onResume();
-
+  public void onStart() {
+    super.onStart();
     EventBus.getDefault().register(this);
 
     if (adapter==null) {
-      mfrag=
-          (ModelFragment)getFragmentManager().findFragmentByTag(MODEL);
+      mfrag=(ModelFragment)getFragmentManager().findFragmentByTag(MODEL);
 
-      if (mfrag == null) {
+      if (mfrag==null) {
         mfrag=new ModelFragment();
-        getFragmentManager().beginTransaction().add(mfrag, MODEL).commit();
+
+        getFragmentManager().beginTransaction()
+          .add(mfrag, MODEL).commit();
       }
-      else if (mfrag.getBook() != null) {
+      else if (mfrag.getBook()!=null) {
         setupPager(mfrag.getBook());
       }
     }
 
-    if (mfrag.getPrefs() != null) {
+    if (mfrag.getPrefs()!=null) {
       pager.setKeepScreenOn(mfrag.getPrefs()
-          .getBoolean(PREF_KEEP_SCREEN_ON, false));
+        .getBoolean(PREF_KEEP_SCREEN_ON, false));
     }
   }
 
   @Override
-  public void onPause() {
+  public void onStop() {
     EventBus.getDefault().unregister(this);
 
-    if (mfrag.getPrefs() != null) {
+    if (mfrag.getPrefs()!=null) {
       int position=pager.getCurrentItem();
 
       mfrag.getPrefs().edit().putInt(PREF_LAST_POSITION, position)
-          .apply();
+        .apply();
     }
 
-    super.onPause();
+    super.onStop();
   }
 
   @Override
@@ -81,23 +80,17 @@ public class EmPubLiteActivity extends Activity {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     switch (item.getItemId()) {
-      case android.R.id.home:
-        pager.setCurrentItem(0, false);
-        return(true);
-
       case R.id.about:
-        Intent i=new Intent(this, SimpleContentActivity.class);
-
-        i.putExtra(SimpleContentActivity.EXTRA_FILE,
+        Intent i = new Intent(this, SimpleContentActivity.class)
+          .putExtra(SimpleContentActivity.EXTRA_FILE,
             "file:///android_asset/misc/about.html");
         startActivity(i);
 
         return(true);
 
       case R.id.help:
-        i=new Intent(this, SimpleContentActivity.class);
-
-        i.putExtra(SimpleContentActivity.EXTRA_FILE,
+        i = new Intent(this, SimpleContentActivity.class)
+          .putExtra(SimpleContentActivity.EXTRA_FILE,
             "file:///android_asset/misc/help.html");
         startActivity(i);
 
@@ -109,9 +102,9 @@ public class EmPubLiteActivity extends Activity {
         return(true);
 
       case R.id.notes:
-        i=new Intent(this, NoteActivity.class);
-        i.putExtra(NoteActivity.EXTRA_POSITION, pager.getCurrentItem());
-        startActivity(i);
+        startActivity(new Intent(this, NoteActivity.class)
+          .putExtra(NoteActivity.EXTRA_POSITION,
+            pager.getCurrentItem()));
 
         return(true);
     }
@@ -119,18 +112,22 @@ public class EmPubLiteActivity extends Activity {
     return(super.onOptionsItemSelected(item));
   }
 
-  public void onEventMainThread(BookLoadedEvent event) {
+  @SuppressWarnings("unused")
+  @Subscribe(threadMode =ThreadMode.MAIN)
+  public void onBookLoaded(BookLoadedEvent event) {
     setupPager(event.getBook());
   }
 
   private void setupPager(BookContents contents) {
     adapter=new ContentsAdapter(this, contents);
     pager.setAdapter(adapter);
-    findViewById(R.id.progressBar1).setVisibility(View.GONE);
-    findViewById(R.id.pager).setVisibility(View.VISIBLE);
+
+    MaterialTabs tabs=(MaterialTabs)findViewById(R.id.tabs);
+    tabs.setViewPager(pager);
 
     SharedPreferences prefs=mfrag.getPrefs();
-    if (prefs != null) {
+
+    if (prefs!=null) {
       if (prefs.getBoolean(PREF_SAVE_LAST_POSITION, false)) {
         pager.setCurrentItem(prefs.getInt(PREF_LAST_POSITION, 0));
       }
@@ -141,13 +138,12 @@ public class EmPubLiteActivity extends Activity {
 
   private void setupStrictMode() {
     StrictMode.ThreadPolicy.Builder builder=
-        new StrictMode.ThreadPolicy.Builder().detectNetwork();
+      new StrictMode.ThreadPolicy.Builder()
+        .detectAll()
+        .penaltyLog();
 
     if (BuildConfig.DEBUG) {
-      builder.penaltyDeath();
-    }
-    else {
-      builder.penaltyLog();
+      builder.penaltyFlashScreen();
     }
 
     StrictMode.setThreadPolicy(builder.build());

@@ -5,7 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Process;
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
   private static final String DATABASE_NAME="empublite.db";
@@ -17,7 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
       singleton=new DatabaseHelper(ctxt.getApplicationContext());
     }
 
-    return (singleton);
+    return(singleton);
   }
 
   private DatabaseHelper(Context ctxt) {
@@ -49,19 +49,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     LoadThread(int position) {
       super();
       this.position=position;
-      Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
     public void run() {
+      Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
       String[] args={String.valueOf(position)};
       Cursor c=
-          getReadableDatabase().rawQuery("SELECT prose FROM notes WHERE position = ? ", args);
+        getReadableDatabase().rawQuery("SELECT prose FROM notes WHERE position = ? ", args);
 
       if (c.getCount() > 0) {
         c.moveToFirst();
+
         EventBus.getDefault().post(new NoteLoadedEvent(position,
-            c.getString(0)));
+          c.getString(0)));
       }
 
       c.close();
@@ -76,14 +78,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
       super();
       this.position=position;
       this.prose=prose;
-      Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
     }
 
     @Override
     public void run() {
+      Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+
       String[] args={String.valueOf(position), prose};
       getWritableDatabase().execSQL("INSERT OR REPLACE INTO notes (position, prose) VALUES (?, ?)",
-          args);
+        args);
     }
   }
 }

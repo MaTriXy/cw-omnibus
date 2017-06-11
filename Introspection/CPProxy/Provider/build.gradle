@@ -3,14 +3,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:1.0.0'
+        classpath 'com.android.tools.build:gradle:2.3.2'
     }
 }
 apply plugin: 'com.android.application'
 
 repositories {
     maven {
-        url "https://repo.commonsware.com.s3.amazonaws.com"
+        url "https://s3.amazonaws.com/repo.commonsware.com"
     }
 }
 
@@ -20,7 +20,7 @@ dependencies {
 
 android {
     compileSdkVersion 19
-    buildToolsVersion "21.1.2"
+    buildToolsVersion "25.0.3"
 
     sourceSets {
         main {

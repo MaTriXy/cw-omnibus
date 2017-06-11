@@ -10,7 +10,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class NoteFragment extends Fragment {
   public interface Contract {
@@ -42,9 +44,33 @@ public class NoteFragment extends Fragment {
                            ViewGroup container,
                            Bundle savedInstanceState) {
     View result=inflater.inflate(R.layout.editor, container, false);
+
     editor=(EditText)result.findViewById(R.id.editor);
 
     return(result);
+  }
+
+  @Override
+  public void onStart() {
+    super.onStart();
+
+    EventBus.getDefault().register(this);
+
+    if (TextUtils.isEmpty(editor.getText())) {
+      DatabaseHelper db=DatabaseHelper.getInstance(getActivity());
+      db.loadNote(getPosition());
+    }
+  }
+
+  @Override
+  public void onStop() {
+    DatabaseHelper.getInstance(getActivity())
+      .updateNote(getPosition(),
+        editor.getText().toString());
+
+    EventBus.getDefault().unregister(this);
+
+    super.onStop();
   }
 
   @Override
@@ -66,30 +92,9 @@ public class NoteFragment extends Fragment {
     return(super.onOptionsItemSelected(item));
   }
 
-  @Override
-  public void onResume() {
-    super.onResume();
-
-    EventBus.getDefault().register(this);
-
-    if (TextUtils.isEmpty(editor.getText())) {
-      DatabaseHelper db=DatabaseHelper.getInstance(getActivity());
-      db.loadNote(getPosition());
-    }
-  }
-
-  @Override
-  public void onPause() {
-    DatabaseHelper.getInstance(getActivity())
-        .updateNote(getPosition(),
-            editor.getText().toString());
-
-    EventBus.getDefault().unregister(this);
-
-    super.onPause();
-  }
-
-  public void onEventMainThread(NoteLoadedEvent event) {
+  @SuppressWarnings("unused")
+  @Subscribe(threadMode =ThreadMode.MAIN)
+  public void onNoteLoaded(NoteLoadedEvent event) {
     if (event.getPosition() == getPosition()) {
       editor.setText(event.getProse());
     }

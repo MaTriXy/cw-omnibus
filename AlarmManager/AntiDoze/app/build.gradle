@@ -1,0 +1,26 @@
+apply plugin: 'com.android.application'
+
+dependencies {
+    compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'com.android.support:support-v13:25.0.3'
+}
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+
+	  defaultConfig {
+        minSdkVersion 19
+		    targetSdkVersion 23
+	  }
+
+    productFlavors {
+        foreground {
+            buildConfigField "boolean", "IS_FOREGROUND", "true"
+        }
+
+        normal {
+            buildConfigField "boolean", "IS_FOREGROUND", "false"
+        }
+    }
+}

@@ -14,7 +14,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ShareActionProvider;
-import de.greenrobot.event.EventBus;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 public class NoteFragment extends Fragment implements TextWatcher {
   public interface Contract {
@@ -25,7 +27,7 @@ public class NoteFragment extends Fragment implements TextWatcher {
   private EditText editor=null;
   private ShareActionProvider share=null;
   private Intent shareIntent=
-      new Intent(Intent.ACTION_SEND).setType("text/plain");
+    new Intent(Intent.ACTION_SEND).setType("text/plain");
 
   static NoteFragment newInstance(int position) {
     NoteFragment frag=new NoteFragment();
@@ -57,12 +59,35 @@ public class NoteFragment extends Fragment implements TextWatcher {
   }
 
   @Override
+  public void onStart() {
+    super.onStart();
+
+    EventBus.getDefault().register(this);
+
+    if (TextUtils.isEmpty(editor.getText())) {
+      DatabaseHelper db=DatabaseHelper.getInstance(getActivity());
+      db.loadNote(getPosition());
+    }
+  }
+
+  @Override
+  public void onStop() {
+    DatabaseHelper.getInstance(getActivity())
+      .updateNote(getPosition(),
+        editor.getText().toString());
+
+    EventBus.getDefault().unregister(this);
+
+    super.onStop();
+  }
+
+  @Override
   public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
     inflater.inflate(R.menu.notes, menu);
 
     share=
-        (ShareActionProvider)menu.findItem(R.id.share)
-            .getActionProvider();
+      (ShareActionProvider)menu.findItem(R.id.share)
+        .getActionProvider();
     share.setShareIntent(shareIntent);
 
     super.onCreateOptionsMenu(menu, inflater);
@@ -78,29 +103,6 @@ public class NoteFragment extends Fragment implements TextWatcher {
     }
 
     return(super.onOptionsItemSelected(item));
-  }
-
-  @Override
-  public void onResume() {
-    super.onResume();
-
-    EventBus.getDefault().register(this);
-
-    if (TextUtils.isEmpty(editor.getText())) {
-      DatabaseHelper db=DatabaseHelper.getInstance(getActivity());
-      db.loadNote(getPosition());
-    }
-  }
-
-  @Override
-  public void onPause() {
-    DatabaseHelper.getInstance(getActivity())
-        .updateNote(getPosition(),
-            editor.getText().toString());
-
-    EventBus.getDefault().unregister(this);
-
-    super.onPause();
   }
 
   @Override
@@ -120,7 +122,9 @@ public class NoteFragment extends Fragment implements TextWatcher {
     // ignored
   }
 
-  public void onEventMainThread(NoteLoadedEvent event) {
+  @SuppressWarnings("unused")
+  @Subscribe(threadMode =ThreadMode.MAIN)
+  public void onNoteLoaded(NoteLoadedEvent event) {
     if (event.getPosition() == getPosition()) {
       editor.setText(event.getProse());
     }
