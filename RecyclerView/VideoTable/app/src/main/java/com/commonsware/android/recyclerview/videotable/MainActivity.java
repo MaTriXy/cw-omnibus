@@ -15,15 +15,15 @@
 package com.commonsware.android.recyclerview.videotable;
 
 import android.Manifest;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
@@ -36,8 +36,8 @@ public class MainActivity extends RecyclerViewActivity implements
   private boolean isInPermission=false;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
 
     ColumnWeightSpanSizeLookup spanSizer=new ColumnWeightSpanSizeLookup(COLUMN_WEIGHTS);
     GridLayoutManager mgr=new GridLayoutManager(this, spanSizer.getTotalSpans());
@@ -46,9 +46,9 @@ public class MainActivity extends RecyclerViewActivity implements
     setLayoutManager(mgr);
     setAdapter(new VideoAdapter());
 
-    if (icicle!=null) {
+    if (state!=null) {
       isInPermission=
-        icicle.getBoolean(STATE_IN_PERMISSION, false);
+        state.getBoolean(STATE_IN_PERMISSION, false);
     }
 
     if (hasFilesPermission()) {
@@ -111,7 +111,7 @@ public class MainActivity extends RecyclerViewActivity implements
   }
 
   private void loadVideos() {
-    getLoaderManager().initLoader(0, null, this);
+    getSupportLoaderManager().initLoader(0, null, this);
   }
 
   class VideoAdapter extends RecyclerView.Adapter<BaseVideoController> {

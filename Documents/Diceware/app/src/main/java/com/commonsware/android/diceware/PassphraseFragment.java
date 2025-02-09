@@ -17,7 +17,6 @@ package com.commonsware.android.diceware;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Application;
-import android.app.Fragment;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +27,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -96,7 +96,7 @@ public class PassphraseFragment extends Fragment {
   public void onViewCreated(View view, Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    passphrase=(TextView)view.findViewById(R.id.passphrase);
+    passphrase=view.findViewById(R.id.passphrase);
 
     if (savedInstanceState!=null) {
       wordCount=savedInstanceState.getInt(STATE_WORD_COUNT);
@@ -240,15 +240,12 @@ public class PassphraseFragment extends Fragment {
     unsubWords();
 
     if (regenPassphrase) {
-      wordsSub=wordsObservable.subscribe(this::rollDemBones, new Consumer<Throwable>() {
-        @Override
-        public void accept(Throwable error) throws Exception {
+      wordsSub=wordsObservable.subscribe(this::rollDemBones, error -> {
           Toast
             .makeText(getActivity(), error.getMessage(), Toast.LENGTH_LONG)
             .show();
           Log.e(getClass().getSimpleName(), "Exception processing request",
             error);
-        }
       });
     }
   }

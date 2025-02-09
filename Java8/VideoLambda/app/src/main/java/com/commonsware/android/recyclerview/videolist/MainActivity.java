@@ -15,16 +15,16 @@
 package com.commonsware.android.recyclerview.videolist;
 
 import android.Manifest;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.util.DiffUtil;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -44,18 +44,18 @@ public class MainActivity extends RecyclerViewActivity implements
   private VideoAdapter adapter;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
 
     setLayoutManager(new LinearLayoutManager(this));
 
     adapter=new VideoAdapter();
     setAdapter(adapter);
 
-    if (icicle!=null) {
+    if (state!=null) {
       isInPermission=
-        icicle.getBoolean(STATE_IN_PERMISSION, false);
-      adapter.sortAscending=icicle.getBoolean(STATE_SORT, true);
+        state.getBoolean(STATE_IN_PERMISSION, false);
+      adapter.sortAscending=state.getBoolean(STATE_SORT, true);
     }
 
     if (hasFilesPermission()) {
@@ -148,7 +148,7 @@ public class MainActivity extends RecyclerViewActivity implements
   }
 
   private void loadVideos() {
-    getLoaderManager().initLoader(0, null, this);
+    getSupportLoaderManager().initLoader(0, null, this);
   }
 
   class VideoAdapter extends RecyclerView.Adapter<RowController> {

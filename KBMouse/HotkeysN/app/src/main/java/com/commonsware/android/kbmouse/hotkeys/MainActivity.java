@@ -16,12 +16,8 @@ package com.commonsware.android.kbmouse.hotkeys;
 
 import android.Manifest;
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.LoaderManager;
 import android.content.ClipData;
 import android.content.ContentUris;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
@@ -29,7 +25,11 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.DragEvent;
@@ -47,7 +47,7 @@ import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends Activity implements
+public class MainActivity extends FragmentActivity implements
   LoaderManager.LoaderCallbacks<Cursor>, View.OnDragListener {
   private static final String STATE_IN_PERMISSION="inPermission";
   private static final int REQUEST_PERMS=137;
@@ -58,17 +58,17 @@ public class MainActivity extends Activity implements
   private VideoAdapter adapter;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
     setContentView(R.layout.main);
 
-    player=(VideoView)findViewById(R.id.player);
+    player=findViewById(R.id.player);
 
     if (player!=null) {
       player.setOnDragListener(this);
     }
 
-    thumbnailLarge=(ImageView)findViewById(R.id.thumbnail_large);
+    thumbnailLarge=findViewById(R.id.thumbnail_large);
 
     if (thumbnailLarge!=null) {
       thumbnailLarge.setOnDragListener(this);
@@ -79,9 +79,9 @@ public class MainActivity extends Activity implements
     setAdapter(adapter);
     getRecyclerView().requestFocus();
 
-    if (icicle!=null) {
+    if (state!=null) {
       isInPermission=
-        icicle.getBoolean(STATE_IN_PERMISSION, false);
+        state.getBoolean(STATE_IN_PERMISSION, false);
     }
 
     if (hasFilesPermission()) {
@@ -240,7 +240,7 @@ public class MainActivity extends Activity implements
       else if (keyCode==KeyEvent.KEYCODE_SLASH &&
         event.isMetaPressed() &&
         Build.VERSION.SDK_INT<Build.VERSION_CODES.N) {
-        new ShortcutDialogFragment().show(getFragmentManager(),
+        new ShortcutDialogFragment().show(getSupportFragmentManager(),
           "shortcuts");
 
         return(true);
@@ -283,7 +283,7 @@ public class MainActivity extends Activity implements
 
   private RecyclerView getRecyclerView() {
     if (videoList==null) {
-      videoList=(RecyclerView)findViewById(R.id.video_list);
+      videoList=findViewById(R.id.video_list);
     }
 
     return(videoList);
@@ -307,7 +307,7 @@ public class MainActivity extends Activity implements
   }
 
   private void loadVideos() {
-    getLoaderManager().initLoader(0, null, this);
+    getSupportLoaderManager().initLoader(0, null, this);
   }
 
   private void playVideo(Uri videoUri) {

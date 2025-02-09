@@ -15,7 +15,7 @@
 package com.commonsware.android.sensor.monitor;
 
 import android.annotation.SuppressLint;
-import android.app.ListFragment;
+import android.support.v4.app.ListFragment;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -33,8 +33,8 @@ public class SensorLogFragment extends ListFragment implements
   private boolean isXYZ=false;
 
   @Override
-  public void onActivityCreated(Bundle state) {
-    super.onActivityCreated(state);
+  public void onViewCreated(View view, Bundle state) {
+    super.onViewCreated(view, state);
 
     getListView().setTranscriptMode(ListView.TRANSCRIPT_MODE_NORMAL);
   }

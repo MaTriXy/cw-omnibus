@@ -27,7 +27,6 @@ import android.widget.Toast;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import io.karim.MaterialTabs;
 
 public class MainActivity extends Activity  {
   private static final String PREF_LAST_VISITED="lastVisited";
@@ -39,12 +38,9 @@ public class MainActivity extends Activity  {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 
-    pager=(ViewPager)findViewById(R.id.pager);
+    pager=findViewById(R.id.pager);
     pager.setAdapter(
       new SampleAdapter(this, getFragmentManager()));
-
-    MaterialTabs tabs=(MaterialTabs)findViewById(R.id.tabs);
-    tabs.setViewPager(pager);
   }
 
   @Override
@@ -82,7 +78,7 @@ public class MainActivity extends Activity  {
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId()==R.id.backup) {
-      startService(new Intent(this, BackupService.class));
+      BackupService.enqueueWork(this);
 
       return(true);
     }

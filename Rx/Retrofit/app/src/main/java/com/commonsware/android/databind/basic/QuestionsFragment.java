@@ -1,22 +1,28 @@
 /***
-  Copyright (c) 2013-2015 CommonsWare, LLC
-  Licensed under the Apache License, Version 2.0 (the "License"); you may not
-  use this file except in compliance with the License. You may obtain a copy
-  of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required
-  by applicable law or agreed to in writing, software distributed under the
-  License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
-  OF ANY KIND, either express or implied. See the License for the specific
-  language governing permissions and limitations under the License.
-  
-  Covered in detail in the book _The Busy Coder's Guide to Android Development_
-    https://commonsware.com/Android
+ Copyright (c) 2013-2015 CommonsWare, LLC
+ Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ use this file except in compliance with the License. You may obtain a copy
+ of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required
+ by applicable law or agreed to in writing, software distributed under the
+ License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ OF ANY KIND, either express or implied. See the License for the specific
+ language governing permissions and limitations under the License.
+
+ Covered in detail in the book _The Busy Coder's Guide to Android Development_
+ https://commonsware.com/Android
  */
 
 package com.commonsware.android.databind.basic;
 
-import android.app.ListFragment;
-import android.databinding.DataBindingUtil;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.v4.app.Fragment;
+import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -25,30 +31,20 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.Toast;
 import com.commonsware.android.databind.basic.databinding.RowBinding;
-import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import com.squareup.picasso.Picasso;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.Consumer;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class QuestionsFragment extends ListFragment {
-  interface Contract {
-    void onQuestionClicked(Question question);
-  }
-
+public class QuestionsFragment extends Fragment {
   private ArrayList<Question> questions
     =new ArrayList<Question>();
   private HashMap<String, Question> questionMap=
@@ -61,6 +57,8 @@ public class QuestionsFragment extends ListFragment {
       .build();
   StackOverflowInterface so=
     retrofit.create(StackOverflowInterface.class);
+  private RVQuestionsAdapter adapter;
+  private Disposable sub;
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
@@ -68,42 +66,53 @@ public class QuestionsFragment extends ListFragment {
 
     setRetainInstance(true);
     setHasOptionsMenu(true);
+    adapter=new RVQuestionsAdapter(getLayoutInflater());
+  }
+
+  @Nullable
+  @Override
+  public View onCreateView(@NonNull LayoutInflater inflater,
+                           @Nullable ViewGroup container,
+                           @Nullable Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.main, container, false);
   }
 
   @Override
-  public View onCreateView(LayoutInflater inflater,
-                           ViewGroup container,
-                           Bundle savedInstanceState) {
-    View result=
-        super.onCreateView(inflater, container,
-          savedInstanceState);
+  public void onViewCreated(@NonNull View v,
+                            @Nullable Bundle savedInstanceState) {
+    RecyclerView rv=v.findViewById(android.R.id.list);
 
-    so.questions("android")
+    rv.setLayoutManager(new LinearLayoutManager(getActivity()));
+    rv.addItemDecoration(new DividerItemDecoration(getActivity(),
+      DividerItemDecoration.VERTICAL));
+    rv.setAdapter(adapter);
+
+    sub=so.questions("android")
       .subscribeOn(Schedulers.io())
       .observeOn(AndroidSchedulers.mainThread())
-      .subscribe(new Consumer<SOQuestions>() {
-        @Override
-        public void accept(SOQuestions result) throws Exception {
-          for (Item item : result.items) {
+      .subscribe(soQuestions -> {
+          for (Item item : soQuestions.items) {
             Question question=new Question(item);
 
             questions.add(question);
             questionMap.put(question.id, question);
           }
 
-          setListAdapter(new QuestionsAdapter(questions));
-        }
-      }, new Consumer<Throwable>() {
-        @Override
-        public void accept(Throwable t) throws Exception {
+          adapter.setQuestions(questions);
+        }, t -> {
           Toast.makeText(getActivity(), t.getMessage(),
             Toast.LENGTH_LONG).show();
           Log.e(getClass().getSimpleName(),
             "Exception from Retrofit request to StackOverflow", t);
         }
-      });
+      );
+  }
 
-    return(result);
+  @Override
+  public void onDestroy() {
+    unsub();
+
+    super.onDestroy();
   }
 
   @Override
@@ -121,14 +130,6 @@ public class QuestionsFragment extends ListFragment {
     return(super.onOptionsItemSelected(item));
   }
 
-  @Override
-  public void onListItemClick(ListView l, View v, int position, long id) {
-    Question question=
-      ((QuestionsAdapter)getListAdapter()).getItem(position);
-
-    ((Contract)getActivity()).onQuestionClicked(question);
-  }
-
   private void updateQuestions() {
     ArrayList<String> idList=new ArrayList<String>();
 
@@ -138,58 +139,88 @@ public class QuestionsFragment extends ListFragment {
 
     String ids=TextUtils.join(";", idList);
 
-    so.update(ids)
+    unsub();
+    sub=so.update(ids)
       .observeOn(AndroidSchedulers.mainThread())
       .subscribeOn(Schedulers.io())
-      .subscribe(new Consumer<SOQuestions>() {
-        @Override
-        public void accept(SOQuestions result) throws Exception {
-          for (Item item : result.items) {
-            Question question=questionMap.get(item.id);
+      .subscribe(result -> {
+        for (Item item : result.items) {
+          Question question=questionMap.get(item.id);
 
-            if (question!=null) {
-              question.updateFromItem(item);
-            }
+          if (question!=null) {
+            question.updateFromItem(item);
           }
         }
-      }, new Consumer<Throwable>() {
-        @Override
-        public void accept(Throwable t) throws Exception {
-          Toast.makeText(getActivity(), t.getMessage(),
-            Toast.LENGTH_LONG).show();
-          Log.e(getClass().getSimpleName(),
-            "Exception from Retrofit request to StackOverflow", t);
-        }
+      }, t -> {
+        Toast.makeText(getActivity(), t.getMessage(),
+          Toast.LENGTH_LONG).show();
+        Log.e(getClass().getSimpleName(),
+          "Exception from Retrofit request to StackOverflow", t);
       });
   }
 
-  class QuestionsAdapter extends ArrayAdapter<Question> {
-    QuestionsAdapter(List<Question> items) {
-      super(getActivity(), R.layout.row, R.id.title, items);
+  private void unsub() {
+    if (sub!=null && !sub.isDisposed()) {
+      sub.dispose();
+    }
+  }
+
+  private static class RVQuestionsAdapter extends RecyclerView.Adapter<RowHolder> {
+    private List<Question> questions;
+    private final LayoutInflater inflater;
+
+    private RVQuestionsAdapter(LayoutInflater inflater) {
+      this.inflater=inflater;
+    }
+
+    @NonNull
+    @Override
+    public RowHolder onCreateViewHolder(@NonNull ViewGroup parent,
+                                        int viewType) {
+      RowBinding rowBinding=RowBinding.inflate(inflater, parent, false);
+
+      return new RowHolder(rowBinding);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-      RowBinding rowBinding=
-        DataBindingUtil.getBinding(convertView);
+    public void onBindViewHolder(@NonNull RowHolder holder,
+                                 int position) {
+      holder.bind(questions.get(position));
+    }
 
-      if (rowBinding==null) {
-        rowBinding=
-          RowBinding.inflate(getActivity().getLayoutInflater(),
-            parent, false);
-      }
+    @Override
+    public int getItemCount() {
+      return questions==null ? 0 : questions.size();
+    }
 
-      Question question=getItem(position);
-      ImageView icon=rowBinding.icon;
+    private void setQuestions(List<Question> questions) {
+      this.questions=questions;
+      notifyDataSetChanged();
+    }
+  }
 
-      rowBinding.setQuestion(question);
+  private static class RowHolder extends RecyclerView.ViewHolder {
+    private final RowBinding binding;
 
-      Picasso.with(getActivity()).load(question.owner.profileImage)
-             .fit().centerCrop()
-             .placeholder(R.drawable.owner_placeholder)
-             .error(R.drawable.owner_error).into(icon);
+    RowHolder(RowBinding binding) {
+      super(binding.getRoot());
+      this.binding=binding;
+    }
 
-      return(rowBinding.getRoot());
+    public void bind(Question question) {
+      Picasso.with(binding.icon.getContext())
+        .load(question.owner.profileImage)
+        .fit()
+        .centerCrop()
+        .placeholder(R.drawable.owner_placeholder)
+        .error(R.drawable.owner_error).into(binding.icon);
+
+      binding.setQuestion(question);
+      binding.getRoot().setOnClickListener(v ->
+        binding.icon.getContext()
+          .startActivity(new Intent(Intent.ACTION_VIEW,
+            Uri.parse(question.link))));
+      binding.executePendingBindings();
     }
   }
 }

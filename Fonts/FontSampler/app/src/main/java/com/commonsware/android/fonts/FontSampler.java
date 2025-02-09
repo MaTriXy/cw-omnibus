@@ -1,5 +1,5 @@
 /***
-  Copyright (c) 2008-2012 CommonsWare, LLC
+  Copyright (c) 2008-2017 CommonsWare, LLC
   Licensed under the Apache License, Version 2.0 (the "License"); you may not
   use this file except in compliance with the License. You may obtain	a copy
   of the License at http://www.apache.org/licenses/LICENSE-2.0. Unless required
@@ -24,18 +24,18 @@ import java.io.File;
 
 public class FontSampler extends Activity {
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
     setContentView(R.layout.main);
     
     TextView tv=(TextView)findViewById(R.id.custom);
-    Typeface face=Typeface.createFromAsset(getAssets(),
-                                            "fonts/HandmadeTypewriter.ttf");
+    Typeface face=
+      Typeface.createFromAsset(getAssets(), "fonts/HandmadeTypewriter.ttf");
     
     tv.setTypeface(face);
     
-    File font=new File(Environment.getExternalStorageDirectory(),
-                       "MgOpenCosmeticaBold.ttf");
+    File font=
+      new File(Environment.getExternalStorageDirectory(), "MgOpenCosmeticaBold.ttf");
     
     if (font.exists()) {
       tv=(TextView)findViewById(R.id.file);

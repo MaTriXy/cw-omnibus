@@ -14,16 +14,15 @@
 
 package com.commonsware.android.permreporter;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.PermissionGroupInfo;
 import android.content.pm.PermissionInfo;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.widget.Toast;
-import io.karim.MaterialTabs;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
@@ -32,7 +31,7 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
-public class MainActivity extends Activity  {
+public class MainActivity extends FragmentActivity  {
   private Observable<PermissionRoster> observable;
   private Disposable sub;
 
@@ -41,10 +40,9 @@ public class MainActivity extends Activity  {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.main);
 
-    final ViewPager pager=(ViewPager)findViewById(R.id.pager);
-    final MaterialTabs tabs=(MaterialTabs)findViewById(R.id.tabs);
+    final ViewPager pager=findViewById(R.id.pager);
 
-    observable=(Observable<PermissionRoster>)getLastNonConfigurationInstance();
+    observable=(Observable<PermissionRoster>)getLastCustomNonConfigurationInstance();
 
     if (observable==null) {
       observable=Observable
@@ -58,8 +56,7 @@ public class MainActivity extends Activity  {
         @Override
         public void accept(PermissionRoster roster) throws Exception {
           pager.setAdapter(new PermissionTabAdapter(MainActivity.this,
-            getFragmentManager(), roster));
-          tabs.setViewPager(pager);
+            getSupportFragmentManager(), roster));
         }
       }, new Consumer<Throwable>() {
         @Override
@@ -73,7 +70,7 @@ public class MainActivity extends Activity  {
       });
   }
 
-  public Object onRetainNonConfigurationInstance() {
+  public Object onRetainCustomNonConfigurationInstance() {
     return(observable);
   }
 

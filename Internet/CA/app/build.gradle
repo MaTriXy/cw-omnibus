@@ -4,16 +4,19 @@ def WARES='"https://wares.commonsware.com/excerpt-7p0.pdf"'
 def SELFSIGNED='"https://scrap.commonsware.com:3001/excerpt-7p0.pdf"'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 27
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         minSdkVersion 17
-        targetSdkVersion 24
+        targetSdkVersion 27
     }
+
+    flavorDimensions "default"
 
     productFlavors {
         comodo {
+            dimension "default"
             resValue "string", "app_name", "CA Validation Demo"
             applicationId "com.commonsware.android.downloader.ca.comodo"
             manifestPlaceholders=
@@ -21,6 +24,7 @@ android {
             buildConfigField "String", "URL", WARES
         }
         verisign {
+            dimension "default"
             resValue "string", "app_name", "Invalid CA Validation Demo"
             applicationId "com.commonsware.android.downloader.ca.verisign"
             manifestPlaceholders=
@@ -28,6 +32,7 @@ android {
             buildConfigField "String", "URL", WARES
         }
         system {
+            dimension "default"
             resValue "string", "app_name", "System CA Validation Demo"
             applicationId "com.commonsware.android.downloader.ca.system"
             manifestPlaceholders=
@@ -35,6 +40,7 @@ android {
             buildConfigField "String", "URL", WARES
         }
         pin {
+            dimension "default"
             resValue "string", "app_name", "Cert Pin Demo"
             applicationId "com.commonsware.android.downloader.ca.pin"
             manifestPlaceholders=
@@ -42,6 +48,7 @@ android {
             buildConfigField "String", "URL", WARES
         }
         invalidPin {
+            dimension "default"
             resValue "string", "app_name", "Cert Pin Demo"
             applicationId "com.commonsware.android.downloader.ca.invalidpin"
             manifestPlaceholders=
@@ -49,6 +56,7 @@ android {
             buildConfigField "String", "URL", WARES
         }
         selfSigned {
+            dimension "default"
             resValue "string", "app_name", "Self-Signed Demo"
             applicationId "com.commonsware.android.downloader.ca.ss"
             manifestPlaceholders=
@@ -56,6 +64,7 @@ android {
             buildConfigField "String", "URL", SELFSIGNED
         }
         override {
+            dimension "default"
             resValue "string", "app_name", "Debug Override Demo"
             applicationId "com.commonsware.android.downloader.ca.debug"
             manifestPlaceholders=
@@ -72,7 +81,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.android.support:support-v13:24.2.0'
-    compile 'com.commonsware.cwac:provider:0.4.4'
-    compile 'com.commonsware.cwac:netsecurity:0.2.0'
+    implementation 'com.android.support:support-v13:27.0.2'
+    implementation 'com.commonsware.cwac:provider:0.5.3'
+    implementation 'com.commonsware.cwac:netsecurity:0.4.4'
 }

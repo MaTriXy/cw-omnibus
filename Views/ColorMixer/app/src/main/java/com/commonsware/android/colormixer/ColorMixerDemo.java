@@ -22,13 +22,13 @@ public class ColorMixerDemo extends Activity {
   private TextView color=null;
   
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
     setContentView(R.layout.main);
     
-    color=(TextView)findViewById(R.id.color);
+    color=findViewById(R.id.color);
     
-    ColorMixer mixer=(ColorMixer)findViewById(R.id.mixer);
+    ColorMixer mixer=findViewById(R.id.mixer);
     
     mixer.setOnColorChangedListener(onColorChange);
   }

@@ -14,7 +14,6 @@
 
 package com.commonsware.android.dragdrop;
 
-import android.app.Activity;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.graphics.Canvas;
@@ -22,6 +21,7 @@ import android.graphics.Point;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,7 +32,7 @@ import com.commonsware.cwac.provider.StreamProvider;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
-public class MainActivity extends Activity implements
+public class MainActivity extends FragmentActivity implements
   View.OnLongClickListener  {
   private static final String AUTHORITY=
     BuildConfig.APPLICATION_ID+".provider";
@@ -41,11 +41,11 @@ public class MainActivity extends Activity implements
   private ImageView iv;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
     setContentView(R.layout.main);
 
-    iv=(ImageView)findViewById(R.id.asset);
+    iv=findViewById(R.id.asset);
 
     Picasso.with(this)
       .load("file:///android_asset/FreedomTower-Morning.jpg")
@@ -103,7 +103,7 @@ public class MainActivity extends Activity implements
       event.isAltPressed() &&
       event.getRepeatCount()==0 &&
       Build.VERSION.SDK_INT<=Build.VERSION_CODES.M) {
-      new ShortcutDialogFragment().show(getFragmentManager(),
+      new ShortcutDialogFragment().show(getSupportFragmentManager(),
         "shortcuts");
 
       return(true);

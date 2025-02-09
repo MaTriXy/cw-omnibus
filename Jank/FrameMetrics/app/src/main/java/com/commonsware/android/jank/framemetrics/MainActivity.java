@@ -15,9 +15,6 @@
 package com.commonsware.android.jank.framemetrics;
 
 import android.Manifest;
-import android.app.LoaderManager;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -26,7 +23,10 @@ import android.os.HandlerThread;
 import android.os.Process;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.FrameMetrics;
@@ -48,16 +48,16 @@ public class MainActivity extends RecyclerViewActivity implements
   private AggregateFrameMetrics afm;
 
   @Override
-  public void onCreate(Bundle icicle) {
-    super.onCreate(icicle);
+  public void onCreate(Bundle state) {
+    super.onCreate(state);
 
     handlerThread.start();
     setLayoutManager(new LinearLayoutManager(this));
     setAdapter(new VideoAdapter());
 
-    if (icicle!=null) {
+    if (state!=null) {
       isInPermission=
-        icicle.getBoolean(STATE_IN_PERMISSION, false);
+        state.getBoolean(STATE_IN_PERMISSION, false);
     }
 
     if (hasFilesPermission()) {
@@ -168,7 +168,7 @@ public class MainActivity extends RecyclerViewActivity implements
   }
 
   private void loadVideos() {
-    getLoaderManager().initLoader(0, null, this);
+    getSupportLoaderManager().initLoader(0, null, this);
   }
 
   class VideoAdapter extends RecyclerView.Adapter<RowController> {

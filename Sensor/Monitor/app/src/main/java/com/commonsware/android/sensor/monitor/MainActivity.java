@@ -15,7 +15,7 @@
 package com.commonsware.android.sensor.monitor;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
+import android.support.v4.app.FragmentActivity;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
@@ -28,7 +28,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-public class MainActivity extends Activity implements
+public class MainActivity extends FragmentActivity implements
     SensorsFragment.Contract {
   private SensorManager mgr=null;
   private SensorLogFragment log=null;
@@ -37,13 +37,15 @@ public class MainActivity extends Activity implements
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    setContentView(R.layout.activity_main);
 
     mgr=(SensorManager)getSystemService(Context.SENSOR_SERVICE);
-    log=
-        (SensorLogFragment)getFragmentManager().findFragmentById(R.id.log);
 
-    panes=(SlidingPaneLayout)findViewById(R.id.panes);
+    setContentView(R.layout.activity_main);
+
+    log=
+        (SensorLogFragment)getSupportFragmentManager().findFragmentById(R.id.log);
+
+    panes=findViewById(R.id.panes);
     panes.openPane();
   }
 
@@ -66,8 +68,8 @@ public class MainActivity extends Activity implements
   @Override
   public List<Sensor> getSensorList() {
     List<Sensor> unfiltered=
-        new ArrayList<Sensor>(mgr.getSensorList(Sensor.TYPE_ALL));
-    List<Sensor> result=new ArrayList<Sensor>();
+      new ArrayList<>(mgr.getSensorList(Sensor.TYPE_ALL));
+    List<Sensor> result=new ArrayList<>();
 
     for (Sensor s : unfiltered) {
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
